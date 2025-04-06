@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
-    name='your-package-name',
-    version='0.1.0',
-    packages=['your_package'],
+    name='smart-real-estate',
+    version='1.0.0',
+    packages=find_packages(),
     install_requires=[
         'Django==3.2.8',
         'psycopg2-binary==2.9.6',
@@ -19,8 +19,8 @@ setup(
         'django-widget-tweaks==1.4.12',
         'requests==2.28.2',
         'beautifulsoup4==4.12.2',
-        'gunicorn',
-        'dj-database-url',
-        'whitenoise'
+        'gunicorn==20.1.0',
+        'dj-database-url==0.5.0',
+        'whitenoise==5.3.0'
     ],
 )
