@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% block title %}- Welcome{% endblock title %}
+
+{% block content %}
+<!-- Showcase -->
+<section id="showcase">
+    <div class="container text-center">
+        <div class="home-search p-5 rounded shadow-lg">
+            <div class="overlay p-5 text-white">
+                <h1 class="display-4 mb-3 fw-bold">Discover Your New Home</h1>
+                <p class="lead mb-4">Find the best real estate deals in your area with one easy search!</p>
+
+                <form action="{% url 'search' %}" class="bg-light p-4 rounded shadow-sm">
+                    <div class="row g-3">
+                        <!-- Keywords -->
+                        <div class="col-md-12">
+                            <input type="text" name="keywords" class="form-control" placeholder="Keyword (Garden, Pool, etc)" value="{{ values.keywords }}">
+                        </div>
+
+                        <!-- State & Bedrooms -->
+                        <div class="col-md-6">
+                            <select name="state" class="form-control">
+                                <option disabled selected>State</option>
+                                {% for key, value in state_choices.items %}
+                                    <option value="{{ key }}" {% if key == values.state %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <select name="bedrooms" class="form-control">
+                                <option disabled selected>Bedrooms</option>
+                                {% for key, value in bedroom_choices.items %}
+                                    <option value="{{ key }}" {% if key == values.bedrooms %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- City -->
+                        <div class="col-md-12">
+                            <input type="text" name="city" class="form-control" placeholder="City" value="{{ values.city }}">
+                        </div>
+
+                        <!-- Price Range -->
+                        <div class="col-md-6">
+                            <input type="number" name="price_min" class="form-control" placeholder="Min Price" value="{{ values.price_min }}">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="number" name="price_max" class="form-control" placeholder="Max Price" value="{{ values.price_max }}">
+                        </div>
+
+                        <!-- Listing Type -->
+                        <div class="col-md-6">
+                            <select name="listing_type" class="form-control" id="listing_type" onchange="toggleRentSchedule()">
+                                <option disabled selected>Listing Type</option>
+                                {% for key, value in listing_type_choices %}
+                                    <option value="{{ key }}" {% if key == values.listing_type %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Rent Schedule -->
+                        <div class="col-md-6" id="rent_schedule_row" style="display: none;">
+                            <select name="rent_payment_schedule" id="rent_payment_schedule" class="form-control">
+                                <option value="" disabled {% if not values.rent_payment_schedule %}selected{% endif %}>
+                                    Rent Payment Schedule
+                                </option>
+                                {% for key, value in rent_schedule_choices %}
+                                    <option value="{{ key }}" {% if key == values.rent_payment_schedule %}selected{% endif %}>{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-lg w-100 mt-3">Search</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Alerts -->
+{% include 'partials/_alerts.html' %}
+
+<!-- Listings -->
+<section id="listings" class="py-4">
+    <div class="container">
+        <div class="row">
+            {% if listings %}
+                {% for listing in listings %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card listing-preview shadow-sm border-0">
+                            <div class="position-relative">
+                                <img class="card-img-top rounded-top" src="{{ listing.photo_main.url }}" alt="">
+                                <span class="badge bg-white position-absolute top-0 end-0 m-2 p-2">
+                                    {% if currency == 'USD' %}
+                                        ${{ listing.converted_price | intcomma }}
+                                    {% elif currency == 'SYP' %}
+                                        {{ listing.converted_price | intcomma }} ل.س
+                                    {% else %}
+                                        ${{ listing.converted_price | intcomma }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <h4 class="text-primary text-center">{{ listing.title }}</h4>
+                                <p class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ listing.city }}, {{ listing.state }}</p>
+                                <hr>
+                                <div class="row text-secondary">
+                                    <div class="col-6"><i class="fas fa-th-large"></i> Sqft: {{ listing.sqft }}</div>
+                                    <div class="col-6"><i class="fas fa-car"></i> Garage: {{ listing.garage }}</div>
+                                </div>
+                                <div class="row text-secondary">
+                                    <div class="col-6"><i class="fas fa-bed"></i> Bedrooms: {{ listing.bedrooms }}</div>
+                                    <div class="col-6"><i class="fas fa-bath"></i> Bathrooms: {{ listing.bathrooms }}</div>
+                                </div>
+                                <hr>
+                                <div class="text-secondary"><i class="fas fa-user"></i> {{ listing.realtor }}</div>
+                                <div class="text-secondary"><i class="fas fa-clock"></i> {{ listing.list_date | timesince }}</div>
+                                <hr>
+                                <a href="{% url 'listing' listing.id %}" class="btn btn-outline-primary w-100">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-md-12 text-center">
+                    <p class="text-muted">No Listings Available</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+<br>
+
+<!-- Predict Price Section -->
+<section class="predict-price-section py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <!-- Image Column -->
+            <div class="col-md-6">
+                <img src="{% static 'img/prrice.jpg' %}" alt="Price Prediction" class="img-fluid rounded-3 shadow">
+            </div>
+            
+            <!-- Content Column -->
+            <div class="col-md-6">
+                <h2 class="display-5 fw-bold mb-4">Get Instant Property Valuation</h2>
+                <p class="lead mb-4">Our advanced AI algorithm provides accurate price estimates for your property in seconds. Whether you're buying, selling, or just curious, get reliable market insights instantly.</p>
+                <div class="features-list mb-5">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="badge bg-primary me-3"><i class="fas fa-rocket"></i></div>
+                        <span>Instant valuation report</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="badge bg-success me-3"><i class="fas fa-chart-line"></i></div>
+                        <span>Market trend analysis</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="badge bg-info me-3"><i class="fas fa-shield-alt"></i></div>
+                        <span>Data privacy guaranteed</span>
+                    </div>
+                </div>
+                <a href="{% url 'predict_price' %}" class="btn btn-primary btn-lg px-5">Estimate Your Property Value</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Us Section -->
+<section class="about-section py-5">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <!-- Content Column -->
+            <div class="col-md-6 order-md-1">
+                <h2 class="display-5 fw-bold mb-4">About Real Estate Pro</h2>
+                <p class="lead mb-4">With over 20 years of experience in the real estate industry, we've revolutionized property search and valuation through technology and innovation.</p>
+                <div class="achievements mb-4">
+                    <div class="d-flex mb-3">
+                        <div class="text-primary me-3"><i class="fas fa-home fa-2x"></i></div>
+                        <div>
+                            <h5>10,000+ Properties Listed</h5>
+                            <p class="text-muted">Connecting buyers and sellers nationwide</p>
+                        </div>
+                    </div>
+                    <div class="d-flex">
+                        <div class="text-primary me-3"><i class="fas fa-award fa-2x"></i></div>
+                        <div>
+                            <h5>Industry Award Winners</h5>
+                            <p class="text-muted">Recognized for innovation and service excellence</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Image Column -->
+            <div class="col-md-6 order-md-0">
+                <img src="{% static 'img/aboutus.jpg' %}" alt="About Us" class="img-fluid rounded-3 shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- User Reviews Section -->
+<section class="reviews-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5 display-5 fw-bold">What Our Clients Say</h2>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <img src="{% static 'img/female.jpg' %}" alt="User" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h5 class="mb-0">Sarah Johnson</h5>
+                                <div class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text" style="line-height: 1.6; overflow-wrap: break-word;">"The price prediction tool was incredibly accurate. Sold my property for exactly the estimated value!"</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <img src="{% static 'img/male.jpg' %}" alt="User" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h5 class="mb-0">Mike Chen</h5>
+                                <div class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text" style="line-height: 1.6; overflow-wrap: break-word;">"Best real estate platform I've used. Found my dream home in just two weeks!"</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-4">
+                            <img src="{% static 'img/female.jpg' %}" alt="User" class="rounded-circle me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                            <div>
+                                <h5 class="mb-0">Emma Wilson</h5>
+                                <div class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text" style="line-height: 1.6; overflow-wrap: break-word;">"The customer service team was incredibly helpful throughout the buying process."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+function toggleRentSchedule() {
+    var listingType = document.getElementById("listing_type").value;
+    var rentScheduleRow = document.getElementById("rent_schedule_row");
+
+    rentScheduleRow.style.display = (listingType === "rent") ? "block" : "none";
+    if (listingType !== "rent") {
+        document.getElementById("rent_payment_schedule").value = "";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    toggleRentSchedule();
+});
+</script>
+{% endblock extra_js %}

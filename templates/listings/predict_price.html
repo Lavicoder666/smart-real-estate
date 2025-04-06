@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Predict Price
+{% endblock title %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --accent-color: #4895ef;
+        --dark-color: #2b2d42;
+        --light-color: #f8f9fa;
+        --success-color: #4cc9f0;
+        --font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family);
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        padding: 2rem;
+        max-width: 800px;
+        margin: 50px auto;
+    }
+
+    .form-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.8rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--dark-color);
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        height: 45px;
+        border: 1px solid #e0e3eb;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+
+    .btn-primary {
+        background: var(--primary-color);
+        border: none;
+        padding: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .btn-primary:hover {
+        background: var(--secondary-color);
+        transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .alert {
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .alert-success {
+        background-color: #d1fae5;
+        color: #065f46;
+        border-color: #a7f3d0;
+    }
+
+    .alert-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border-color: #fca5a5;
+    }
+
+    @media (max-width: 768px) {
+        .form-card {
+            padding: 1.5rem;
+            margin: 20px;
+        }
+
+        .form-control, .form-select {
+            padding: 0.5rem 0.75rem;
+        }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+</style>
+
+<div class="form-card fade-in">
+    <h2 class="text-center fw-bold" style="color: var(--primary-color);">Predict Property Price</h2>
+
+    <form method="POST" action="{% url 'predict_price' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label for="size" class="form-label">Size (sqm):</label>
+            <input type="number" name="size" id="size" class="form-control" required>
+        </div>
+
+        <div class="mb-4">
+            <label for="bedrooms" class="form-label">Bedrooms:</label>
+            <input type="number" name="bedrooms" id="bedrooms" class="form-control" required>
+        </div>
+
+        <div class="mb-4">
+            <label for="bathrooms" class="form-label">Bathrooms:</label>
+            <input type="number" name="bathrooms" id="bathrooms" class="form-control" required>
+        </div>
+
+        <div class="mb-4">
+            <label for="furnished" class="form-label">Furnished:</label>
+            <select name="furnished" id="furnished" class="form-select" required>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+            </select>
+        </div>
+
+        <div class="mb-4">
+            <button type="submit" class="btn-primary">Predict Price</button>
+        </div>
+    </form>
+
+    {% if messages %}
+        <div class="mt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} fade-in">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if predicted_price %}
+        <div class="mt-4 text-center">
+            <h2 class="alert alert-success fade-in">Predicted Price: {{ predicted_price }} SYP</h2>
+        </div>
+    {% endif %}
+</div>
+
+<!-- استيراد الخطوط -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+{% endblock content %}

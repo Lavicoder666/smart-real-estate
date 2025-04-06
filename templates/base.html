@@ -1,0 +1,408 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="{% static 'css/all.css' %}">
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <!-- Custom -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Lightbox -->
+    <link rel="stylesheet" href="{% static 'css/lightbox.min.css' %}">
+
+    <!-- Favicon icon -->
+    <link rel="shortcut icon" href="{% static 'img/icon/logo.ico' %}" type="image/x-icon">
+
+    <title>
+        Real Estate
+        {% block title %}
+        {% endblock title %}
+    </title>
+
+    <style>
+        /* تصميم نافذة الدردشة */
+        .chatbox {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 360px;
+            height: 500px;
+            max-width: 100%;
+            border-radius: 15px;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease-in-out;
+            transform: scale(0.95);
+            border: 1px solid #e0e3eb;
+        }
+    
+        /* عند فتح الدردشة */
+        .chatbox.open {
+            transform: scale(1);
+        }
+    
+        /* رأس نافذة الدردشة */
+        .chat-header {
+            background: linear-gradient(135deg, #0d3b66, #007bff);
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    
+        .chat-header img {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+    
+        /* منطقة الرسائل */
+        #messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #ddd;
+        }
+    
+        /* فقاعات الرسائل */
+        .message {
+            margin-bottom: 12px;
+            padding: 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            max-width: 80%;
+            word-wrap: break-word;
+            position: relative;
+        }
+    
+        /* رسالة المستخدم */
+        .message.user {
+            background: #0d3b66;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+    
+        /* رسالة البوت */
+        .message.bot {
+            background: #e9ecef;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+    
+        /* وقت الرسالة */
+        .message-time {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+            display: block;
+            text-align: right;
+        }
+    
+        /* مدخل الإدخال وزر الإرسال */
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+            background: #fff;
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+    
+        #user-message {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+    
+        #user-message:focus {
+            border-color: #0d3b66;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    
+        .send-button {
+            background: #0d3b66;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    
+        .send-button:hover {
+            background: #007bff;
+        }
+    
+        /* زر فتح الدردشة */
+        .open-chatbox {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0d3b66;
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 999;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    
+        .open-chatbox:hover {
+            transform: scale(1.1);
+        }
+    
+        .delete-chat {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            transition: color 0.3s;
+        }
+    
+        .delete-chat:hover {
+            color: #ff4d4d;
+        }
+    
+        /* أسئلة شائعة محسنة */
+        .faq {
+            cursor: pointer;
+            color: #0d3b66;
+            font-weight: bold;
+            margin-bottom: 8px;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            display: inline-block;
+            transition: 0.3s;
+            font-size: 14px;
+            width: 100%;
+            text-align: left;
+        }
+    
+        .faq:hover {
+            background: #bbdefb;
+        }
+
+        /* زر الإغلاق */
+        .close-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            margin-left: 10px;
+            transition: color 0.3s;
+        }
+
+        .close-button:hover {
+            color: #ff4d4d;
+        }
+    </style>
+</head>
+<body style="display: flex; flex-direction: column; min-height: 100vh; margin: 0;">
+
+    <!-- Navbar -->
+    {% include 'partials/_navbar.html' %}
+
+    <!-- main content -->
+    <main style="flex: 1;">
+        {% block content %}{% endblock content %}
+    </main>
+
+    <!-- Footer -->
+    {% include 'partials/_footer.html' %}
+
+    <!-- نافذة الدردشة -->
+    <div id="chatbox" class="chatbox">
+        <div class="chat-header">
+            <div>
+                <img src="{% static 'img/robot.png' %}" alt="Robot Icon">
+                <span>Chat with us</span>
+            </div>
+            <div>
+                <button class="delete-chat" onclick="clearChat()"><i class="fas fa-trash-alt"></i></button>
+                <button class="close-button" onclick="toggleChatbox()"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="messages">
+            <!-- إضافة الأسئلة الشائعة هنا -->
+            <div class="faq" onclick="sendFAQ('what is this website about')">What is this website about?</div>
+            <div class="faq" onclick="sendFAQ('how can i register on the website')">How can I register on the website?</div>
+            <div class="faq" onclick="sendFAQ('how can i contact support')">How can I contact support?</div>
+            <div class="faq" onclick="sendFAQ('how do i search for properties for sale')">How do I search for properties for sale?</div>
+            <div class="faq" onclick="sendFAQ('how do i add a new property')">How do I add a new property?</div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="user-message" placeholder="Type your message here..." onkeydown="if(event.key === 'Enter') sendMessage()">
+            <button class="send-button" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- زر فتح نافذة الدردشة -->
+    <button id="open-chatbox" class="open-chatbox" onclick="toggleChatbox()">
+        <i class="fas fa-comments"></i>
+    </button>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // الحصول على رمز CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // هل يبدأ هذا السطر بـ اسم =؟
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // وظيفة لفتح وإغلاق نافذة الدردشة
+        function toggleChatbox() {
+            var chatbox = document.getElementById('chatbox');
+            var openButton = document.getElementById('open-chatbox');
+            if (chatbox.style.display === 'none' || chatbox.style.display === '') {
+                chatbox.style.display = 'flex';
+                chatbox.classList.add('open');
+                openButton.style.display = 'none'; // إخفاء زر الفتح عند فتح النافذة
+                localStorage.setItem('chatboxState', 'open');
+            } else {
+                chatbox.style.display = 'none';
+                chatbox.classList.remove('open');
+                openButton.style.display = 'flex'; // إظهار زر الفتح عند إغلاق النافذة
+                localStorage.setItem('chatboxState', 'closed');
+            }
+        }
+
+        // وظيفة لإرسال الرسالة
+        function sendMessage() {
+            var message = $('#user-message').val();
+            if (message.trim() !== '') {
+                $.ajax({
+                    type: 'POST',
+                    url: '/chatbot/chat/',
+                    data: {
+                        message: message,
+                        csrfmiddlewaretoken: csrftoken
+                    },
+                    success: function(response) {
+                        var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        $('#messages').append('<div class="message user"><b>You:</b> ' + message + '<span class="message-time">' + time + '</span></div>');
+                        $('#messages').append('<div class="message bot"><b>Bot:</b> ' + response.message + '<span class="message-time">' + time + '</span></div>');
+                        $('#user-message').val('');
+                        saveChat();
+                        $('#messages').scrollTop($('#messages')[0].scrollHeight); // التمرير لأسفل
+                    }
+                });
+            }
+        }
+
+        // وظيفة لإرسال سؤال شائع
+        function sendFAQ(question) {
+            $.ajax({
+                type: 'POST',
+                url: '/chatbot/chat/',
+                data: {
+                    message: question,
+                    csrfmiddlewaretoken: csrftoken
+                },
+                success: function(response) {
+                    var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    $('#messages').append('<div class="message user"><b>You:</b> ' + question + '<span class="message-time">' + time + '</span></div>');
+                    $('#messages').append('<div class="message bot"><b>Bot:</b> ' + response.message + '<span class="message-time">' + time + '</span></div>');
+                    saveChat();
+                    $('#messages').scrollTop($('#messages')[0].scrollHeight); // التمرير لأسفل
+                }
+            });
+        }
+
+        // وظيفة لحفظ المحادثة في Local Storage
+        function saveChat() {
+            var messages = $('#messages').html();
+            localStorage.setItem('chatMessages', messages);
+        }
+
+        // وظيفة لاستعادة المحادثة من Local Storage
+        function loadChat() {
+            var messages = localStorage.getItem('chatMessages');
+            if (messages) {
+                $('#messages').html(messages);
+            }
+        }
+
+        // وظيفة لحذف المحادثة
+        function clearChat() {
+            $('#messages').html('');
+            localStorage.removeItem('chatMessages');
+        }
+
+        // استعادة المحادثة وحالة الشات بوت عند تحميل الصفحة
+        $(document).ready(function() {
+            loadChat();
+            var chatboxState = localStorage.getItem('chatboxState');
+            if (chatboxState === 'open') {
+                $('#chatbox').show();
+            } else {
+                $('#chatbox').hide();
+            }
+        });
+
+        function toggleRentSchedule() {
+            var listingType = document.getElementById("listing_type").value;
+            var rentScheduleRow = document.getElementById("rent_schedule_row");
+
+            if (listingType === "rent") {
+                rentScheduleRow.style.display = "block";
+            } else {
+                rentScheduleRow.style.display = "none";
+                document.getElementById("rent_payment_schedule").value = "";  // إعادة تعيين قيمة جدول الدفع عند اختيار "For Sale"
+            }
+        }
+
+        // استدعاء وظيفة toggleRentSchedule عند تحميل الصفحة
+        document.addEventListener("DOMContentLoaded", function() {
+            toggleRentSchedule();  // Call on page load to handle pre-selected values
+        });
+
+    </script>
+
+    <script src="{% static 'js/jquery-3.3.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/lightbox.min.js' %}"></script>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
