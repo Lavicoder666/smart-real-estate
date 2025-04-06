@@ -229,7 +229,7 @@ def predict_price(size, bedrooms, bathrooms, furnished):
     furnished_value = 1 if furnished.lower() == 'yes' else 0
 
     # تجهيز البيانات المدخلة للنموذج
-    input_data = np.array([size, bedrooms, bathrooms, furnished_value], dtype=np.float64).reshape(1, -1)
+    input_data = np.array([size, bedrooms, bathrooms, furnished_value]).reshape(1, -1)
 
     # التنبؤ بالسعر
     predicted_price = model.predict(input_data)[0]
