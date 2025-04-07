@@ -353,7 +353,7 @@ def add_listing(request):
 
 # دالة لتغيير العملة
 def change_currency(request, currency):
-    if currency in settings.CURRENCY_CHOICES:
+    if currency in settings.CURRENCY_CHOICES):
         request.session['currency'] = currency
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
