@@ -12,6 +12,7 @@ import string
 from django.contrib.auth.decorators import login_required
 from listings.models import Listing
 from listings.forms import ListingForm
+from django.http import HttpResponse
 
 
 
@@ -271,4 +272,10 @@ def edit_listing(request, listing_id):
     }
     return render(request, 'listings/edit_listing.html', context)
 
-
+def create_admin(request):
+    if not User.objects.filter(username='admin').exists():
+        user = User.objects.create_superuser('admin', 'lavi@gmail.com', '123')
+        user.save()
+        return HttpResponse("Admin user created successfully.")
+    else:
+        return HttpResponse("Admin already exists.")
