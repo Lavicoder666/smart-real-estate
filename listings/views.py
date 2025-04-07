@@ -19,7 +19,6 @@ import pandas as pd
 from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import send_mail
 from django.utils import timezone
-import warnings
 
 # تحميل النموذج المدرب
 model_path = os.path.join(settings.BASE_DIR, 'ml_models/model.pth')
@@ -353,7 +352,7 @@ def add_listing(request):
 
 # دالة لتغيير العملة
 def change_currency(request, currency):
-    if currency in settings.CURRENCY_CHOICES):
+    if currency in settings.CURRENCY_CHOICES:
         request.session['currency'] = currency
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
