@@ -37,20 +37,25 @@ def chatbot_response(request):
     if request.method == "POST":
         user_message = request.POST.get('message')
         cleaned_message = clean_text(user_message)
-        
+
+        custom_responses = {
+            "hello": "Hi there!",
+            "ما هو هذا الموقع": "هذا الموقع مخصص لعرض قوائم العقارات ويوفر معلومات عن العقارات المتاحة للبيع أو الإيجار.",
+        }
+
         if cleaned_message in custom_responses:
-            bot_response = custom_responses[cleaned_message]
-            return JsonResponse({"message": bot_response})
+            return JsonResponse({"message": custom_responses[cleaned_message]})
 
         try:
             headers = {
-                "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                "Authorization": f"Bearer {settings.OPENAI_API_KEY}",  # من OpenRouter
                 "Content-Type": "application/json"
             }
+
             data = {
                 "model": "deepseek/deepseek-chat",
                 "messages": [
-                    {"role": "system", "content": "You are a helpful assistant"},
+                    {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": user_message}
                 ]
             }
@@ -60,14 +65,14 @@ def chatbot_response(request):
                 headers=headers,
                 json=data
             )
-            response.raise_for_status()  # لو صار خطأ، يرفع استثناء
+            response.raise_for_status()
+
             result = response.json()
-            bot_response = result["choices"][0]["message"]["content"]
+            bot_response = result['choices'][0]['message']['content']
             return JsonResponse({"message": bot_response})
 
         except Exception as e:
             logger.error(f"Error contacting DeepSeek API: {e}")
             return JsonResponse({"message": "Error contacting DeepSeek API."})
 
-    else:
-        return JsonResponse({"message": "Invalid request method."})
+    return JsonResponse({"message": "Invalid request method."})
