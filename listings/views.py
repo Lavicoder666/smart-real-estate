@@ -18,6 +18,8 @@ from .choices import price_choices, bedroom_choices, state_choices, listing_type
 import pandas as pd
 from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import send_mail
+from django.utils import timezone
+import warnings
 
 # تحميل النموذج المدرب
 model_path = os.path.join(settings.BASE_DIR, 'ml_models/model.pth')
@@ -37,7 +39,10 @@ data_transforms = transforms.Compose([
 
 # دالة لتصنيف الصور
 def classify_image(image_path, threshold=0.7):
-    image = Image.open(image_path)
+    try:
+        image = Image.open(image_path)
+    except FileNotFoundError:
+        return "file_not_found"
     if image.mode != 'RGB':
         image = image.convert('RGB')
     image = data_transforms(image).unsqueeze(0)
@@ -49,6 +54,11 @@ def classify_image(image_path, threshold=0.7):
     if max_prob < threshold:
         return "others"
     return class_names[preds[0]]
+
+def ensure_directory_exists(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def index(request):
     print(settings.CURRENCY_CONVERSION_RATES)  # طباعة الإعدادات للتأكد من تحميلها بشكل صحيح
@@ -85,16 +95,22 @@ def listing(request, listing_id):
 
     # تصنيف الصور
     if listing.photo_main:
+        ensure_directory_exists(listing.photo_main.path)
         listing.photo_main_category = classify_image(listing.photo_main.path)
     if listing.photo_1:
+        ensure_directory_exists(listing.photo_1.path)
         listing.photo_1_category = classify_image(listing.photo_1.path)
     if listing.photo_2:
+        ensure_directory_exists(listing.photo_2.path)
         listing.photo_2_category = classify_image(listing.photo_2.path)
     if listing.photo_3:
+        ensure_directory_exists(listing.photo_3.path)
         listing.photo_3_category = classify_image(listing.photo_3.path)
     if listing.photo_4:
+        ensure_directory_exists(listing.photo_4.path)
         listing.photo_4_category = classify_image(listing.photo_4.path)
     if listing.photo_5:
+        ensure_directory_exists(listing.photo_5.path)
         listing.photo_5_category = classify_image(listing.photo_5.path)
     listing.save()
 
