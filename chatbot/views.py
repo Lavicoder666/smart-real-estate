@@ -37,22 +37,33 @@ def chatbot_response(request):
         user_message = request.POST.get('message')
         cleaned_message = clean_text(user_message)
         
-        # التحقق من الأسئلة المخصصة
         if cleaned_message in custom_responses:
             bot_response = custom_responses[cleaned_message]
             return JsonResponse({"message": bot_response})
 
-        # استخدام DeepSeek API عبر OpenRouter
         try:
-            response = openai.ChatCompletion.create(
-                model="deepseek/deepseek-chat",
-                messages=[
+            headers = {
+                "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            data = {
+                "model": "deepseek/deepseek-chat",
+                "messages": [
                     {"role": "system", "content": "You are a helpful assistant"},
                     {"role": "user", "content": user_message}
                 ]
+            }
+
+            response = requests.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=headers,
+                json=data
             )
-            bot_response = response['choices'][0]['message']['content']
+            response.raise_for_status()  # لو صار خطأ، يرفع استثناء
+            result = response.json()
+            bot_response = result["choices"][0]["message"]["content"]
             return JsonResponse({"message": bot_response})
+
         except Exception as e:
             logger.error(f"Error contacting DeepSeek API: {e}")
             return JsonResponse({"message": "Error contacting DeepSeek API."})
