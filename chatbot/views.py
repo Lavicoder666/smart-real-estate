@@ -4,6 +4,7 @@ import re
 import logging
 from django.conf import settings
 import openai  # استدعاء مكتبة OpenAI
+import requests
 
 # إعداد الـ Logger لتتبع الأخطاء
 logger = logging.getLogger(__name__)
