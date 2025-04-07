@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recommended Properties</title>
+</head>
+<body>
+    <h1>Recommended Properties</h1>
+    <ul>
+        {% for recommendation in recommendations %}
+            <li>
+                <strong>{{ recommendation.title }}</strong><br>
+                Address: {{ recommendation.address }}<br>
+                City: {{ recommendation.city }}<br>
+                State: {{ recommendation.state }}<br>
+                Price: 
+                {% if currency == 'USD' %}
+                    ${{ recommendation.converted_price | intcomma }} USD
+                {% elif currency == 'SYP' %}
+                    {{ recommendation.converted_price | intcomma }} ل.س
+                {% else %}
+                    ${{ recommendation.converted_price | intcomma }} USD
+                {% endif %}
+                <br>
+                Bedrooms: {{ recommendation.bedrooms }}<br>
+                Bathrooms: {{ recommendation.bathrooms }}<br>
+                Description: {{ recommendation.description }}<br>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
